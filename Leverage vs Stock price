@@ -1,0 +1,37 @@
+# Import libraries
+import yfinance as yf
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# Define a function to calculate leverage ratio
+def leverage_ratio (total_assets, total_equity):
+  return total_assets / total_equity
+
+# Choose a ticker symbol
+ticker = input("Enter stock ticker: ")
+
+# Create a yfinance object
+stock = yf.Ticker (ticker)
+
+# Get the past 5 year stock prices and balance sheet data
+prices = stock.history (period="5y")
+balance_sheet = stock.balancesheet # Use the balancesheet attribute
+
+# Calculate the total assets and total equity for each year
+total_assets = balance_sheet.loc ["Total Assets"]
+total_equity = balance_sheet.loc ["Stockholders Equity"]
+
+# Calculate the leverage ratio for each year
+leverage_ratio = leverage_ratio (total_assets, total_equity)
+
+# Plot the leverage ratio against the stock price
+plt.figure (figsize=(10, 6))
+plt.plot (prices.index, prices ["Close"], label="Stock Price")
+plt.xlabel ("Date")
+plt.ylabel ("Stock Price")
+plt.twinx () # Create a secondary axis
+plt.plot (leverage_ratio.index, leverage_ratio, label="Leverage Ratio", color="orange")
+plt.ylabel ("Leverage Ratio")
+plt.title (f"{ticker} Stock Price and Leverage Ratio")
+plt.legend ()
+plt.show ()
