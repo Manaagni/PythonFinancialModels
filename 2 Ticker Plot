@@ -1,0 +1,25 @@
+import yfinance as yf
+import matplotlib.pyplot as plt
+
+symbol1 = input('Enter the first stock ticker: ')
+symbol2 = input('Enter the second stock ticker: ')
+
+stock1 = yf.Ticker(symbol1)
+data1 = stock1.history(period='5y')
+
+stock2 = yf.Ticker(symbol2)
+data2 = stock2.history(period='5y')
+
+fig, ax1 = plt.subplots(figsize=(14,7))
+ax1.plot(data1['Close'], label=symbol1)
+ax1.set_xlabel('Date')
+ax1.set_ylabel('Close Price')
+ax1.set_title(f'{symbol1} and {symbol2} Close Price History')
+ax1.legend(loc='upper left')
+
+ax2 = ax1.twinx()
+ax2.plot(data2['Close'], color='red', label=symbol2)
+ax2.set_ylabel('Close Price')
+ax2.legend(loc='upper right')
+
+plt.show()
