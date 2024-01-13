@@ -1,0 +1,25 @@
+
+# import yfinance and pandas
+import yfinance as yf
+import pandas as pd
+
+# set display option to show all rows
+pd.set_option('display.max_rows', None)
+
+# get the user input as a string
+ticker_symbol = input("Enter a stock ticker: ")
+
+# convert the input to uppercase
+ticker_symbol = ticker_symbol.upper()
+
+# get the ticker object for the input
+ticker_object = yf.Ticker(ticker_symbol)
+
+# get the balance sheet DataFrame
+balancesheet = ticker_object.balancesheet
+
+# display the balance sheet DataFrame
+display(balancesheet)
+
+# reset display option to default
+pd.reset_option('display.max_rows')
