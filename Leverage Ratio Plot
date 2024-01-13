@@ -1,0 +1,46 @@
+# Import the requests and pandas modules
+import requests
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# Define the base URL for the FMP API
+base_url = "https://financialmodelingprep.com/api/v3/"
+
+# Define your API key
+api_key = "zAmAyEcXAlgfV1oCWiHVsUod1VujT0p3"
+
+# Define the ticker symbol of the company
+ticker = input("Enter Stock Ticker: ")
+
+# Define the statement type and the period
+statement = "balance-sheet-statement"
+period = "annual"
+
+# Construct the full URL for the API call
+full_url = base_url + statement + "/" + ticker + "?period=" + period + "&apikey=" + api_key
+
+# Make the API call using the requests.get() method
+response = requests.get(full_url)
+
+# Check the status code of the response
+if response.status_code == 200:
+    print("Request successful")
+elif response.status_code == 404:
+    print("Request not found")
+else:
+    print("Request error")
+
+# Parse the data from the response using the response.json() method
+data = response.json()
+
+# Convert the data to a pandas DataFrame and select only the columns that contain the total debt and total equity
+df = pd.DataFrame(data)
+df1 = pd.DataFrame(df)
+df = df[["date", "totalAssets", "totalStockholdersEquity"]]
+df1 = df["totalAssets"]/df["totalStockholdersEquity"]
+df1 = df1.sort_index(ascending=False)
+df = df.sort_index(ascending=False)
+# Display the DataFrame in a tabular form
+plt.plot(df['date'],df1)
+plt.title(f"Leverage {ticker}")
+plt.show()
