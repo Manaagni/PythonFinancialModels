@@ -1,0 +1,84 @@
+# Import libraries
+import yfinance as yf
+import numpy as np
+from scipy.stats import norm
+from datetime import date
+import pandas as pd
+
+# Define the BLM model function
+def blm_call(F, K, T, r, sigma):
+    d1 = (np.log(F / K) + 0.5 * sigma ** 2 * T) / (sigma * np.sqrt(T))
+    d2 = d1 - sigma * np.sqrt(T)
+    return np.exp(-r * T) * (F * norm.cdf(d1) - K * norm.cdf(d2))
+
+# Define the bisection method function
+def bisection(func, a, b, tol, args):
+    # Check if the root is within the interval
+    if func(a, *args) * func(b, *args) > 0:
+        print("No root in the interval")
+        return None
+    # Initialize the iteration counter
+    n = 0
+    # Repeat until the interval is smaller than the tolerance
+    while abs(b - a) > tol:
+        # Increment the iteration counter
+        n += 1
+        # Find the midpoint of the interval
+        c = (a + b) / 2
+        # Check if the midpoint is the root
+        if func(c, *args) == 0:
+            print(f"Root found at {c} in {n} iterations")
+            return c
+        # Check if the root is in the left or right subinterval
+        elif func(a, *args) * func(c, *args) < 0:
+            b = c
+        else:
+            a = c
+    # Return the final approximation
+    print(f"Root found at {c} in {n} iterations")
+    return c
+
+# Define the stock ticker and the expiration date
+ticker = input("Enter Stock Ticker: ")
+expiration = input("Enter Expiration Date: ")
+
+# Get the futures price from yfinance
+futures = yf.Ticker(ticker)
+F = futures.history().iloc[-1]["Close"]
+
+# Get the strike price and the option price from yfinance
+options = futures.option_chain(expiration)
+# Assume we use the at-the-money option
+K = options.calls.iloc[np.argmin(np.abs(options.calls["strike"] - F))]["strike"]
+C = options.calls.iloc[np.argmin(np.abs(options.calls["strike"] - F))]["lastPrice"]
+
+# Get the time to expiration in years
+today = date.today()
+expiry = date.fromisoformat(expiration)
+T = (expiry - today).days / 365
+
+
+# Get the historical data for the ticker
+
+
+# Convert the data into a dataframe, selecting the 'Adj Close' column
+
+data = yf.download("^TNX", start="2023-01-01", end="2024-01-01", interval="1d")
+r = data["Adj Close"]
+r= r[0]
+# Define the tolerance for the bisection method
+tol = 1e-6
+
+# Define the initial interval for the bisection method
+a = 0.01 # Lower bound of volatility
+b = 1.00 # Upper bound of volatility
+
+# Define the function to find the root of
+def func(sigma, F, K, T, r, C):
+    return blm_call(F, K, T, r, sigma) - C
+
+# Apply the bisection method to find the implied volatility
+sigma = bisection(func, a, b, tol, args=(F, K, T, r, C))
+
+# Print the result
+print(f"The implied volatility for {ticker} on {expiration} is {sigma:.4f}")
