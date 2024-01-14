@@ -1,0 +1,42 @@
+# Import libraries
+import yfinance as yf
+import pandas as pd
+import plotly.graph_objects as go
+
+# Ask the user to input a stock ticker
+ticker = input("Enter a stock ticker: ")
+
+# Create a ticker object
+stock = yf.Ticker(ticker)
+
+# Get the balance sheet and income statement data
+balance_sheet = stock.balance_sheet
+income_statement = stock.financials
+
+# Define a function to format the data frames
+def format_df(df):
+    # Convert the numbers to millions and round to two decimals
+    df = df / 1000000
+    df = df.round(2)
+    # Add a suffix of M to indicate millions
+    df = df.applymap(lambda x: f"{x}M" if isinstance(x, (int, float)) else x)
+    # Use pandas styling options to add colors and borders
+    df = df.style.set_properties(**{"text-align": "right", "border": "1px solid black"})
+    df = df.background_gradient(cmap="Blues")
+    return df
+
+# Display the balance sheet and income statement data
+print("Balance Sheet:")
+display(format_df(balance_sheet))
+print("Income Statement:")
+display(format_df(income_statement))
+
+# Get the historical data for the past 5 years
+historical_data = stock.history(period="5y")
+
+# Create a plotly figure with the adjusted close price
+fig = go.Figure()
+fig.add_trace(go.Scatter(x=historical_data.index, y=historical_data["Close"], name="Close"))
+fig.update_layout(title=f"{ticker} Adjusted Close Price", xaxis_title="Date", yaxis_title="Price")
+# Display the figure
+fig.show()
