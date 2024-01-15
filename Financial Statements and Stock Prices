@@ -32,7 +32,14 @@ print("Income Statement:")
 display(format_df(income_statement))
 
 # Get the historical data for the past 5 years
-historical_data = stock.history(period="5y")
+historical_data = stock.history(period="4y")
+
+#Get Financial Ratios for Ticker
+stock_info = yf.Ticker(ticker).info
+print(f'Trailing P/E Ratio : {stock_info["trailingPE"]}')
+print(f'Return on Equity Ratio : {stock_info ["returnOnEquity"]}')
+print(f'Debt to Equity Ratio : {stock_info["debtToEquity"]}')
+print(f'Return on Asset Ratio : {stock_info["returnOnAssets"]}')
 
 # Create a plotly figure with the adjusted close price
 fig = go.Figure()
@@ -40,3 +47,6 @@ fig.add_trace(go.Scatter(x=historical_data.index, y=historical_data["Close"], na
 fig.update_layout(title=f"{ticker} Adjusted Close Price", xaxis_title="Date", yaxis_title="Price")
 # Display the figure
 fig.show()
+
+
+
