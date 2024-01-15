@@ -9,7 +9,7 @@ import pandas as pd
 def blm_call(F, K, T, r, sigma):
     d1 = (np.log(F / K) + 0.5 * sigma ** 2 * T) / (sigma * np.sqrt(T))
     d2 = d1 - sigma * np.sqrt(T)
-    return np.exp(-r * T) * (F * norm.cdf(d1) - K * norm.cdf(d2))
+    return np.exp(-r * T) * (F * norm.cdf(d1) - K * np.exp(-r*T/365) * norm.cdf(d2))
 
 # Define the bisection method function
 def bisection(func, a, b, tol, args):
@@ -63,7 +63,7 @@ T = (expiry - today).days / 365
 
 # Convert the data into a dataframe, selecting the 'Adj Close' column
 
-data = yf.download("^TNX", start="2023-01-01", end="2024-01-01", interval="1d")
+data = yf.download("^TNX", start="2023-01-01", end="2024-01-15", interval="1d")
 r = data["Adj Close"]
 r= r[0]
 # Define the tolerance for the bisection method
