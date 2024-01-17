@@ -1,0 +1,36 @@
+# Import libraries
+import pandas as pd
+import yfinance as yf
+import numpy as np
+import matplotlib.pyplot as plt
+
+pd.set_option('display.max_rows', None)
+
+# Get the list of S&P 500 tickers from Wikipedia
+url = "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies"
+table = pd.read_html(url, attrs={"id": "constituents"})[0]
+tickers = table["Symbol"].to_list()
+
+# Get the historical stock prices for the last 5 years
+start_date = "2019-01-01"
+end_date = "2023-12-31"
+prices = yf.download(tickers, start_date, end_date)["Adj Close"]
+
+# Calculate the daily returns
+returns = prices.pct_change()
+
+# Calculate the correlation matrix
+corr_matrix = returns.corr()
+
+# Remove the diagonal and lower triangular values
+corr_matrix = corr_matrix.where(np.triu(np.ones(corr_matrix.shape), k=1).astype(bool))
+
+# Set the correlation threshold
+threshold = input("Enter correlation threshold: ")
+
+# Filter the pairs with correlation above the threshold
+high_corr = corr_matrix[(corr_matrix > threshold)].stack().reset_index()
+high_corr.columns = ["Stock 1", "Stock 2", "Correlation"]
+
+# Display the table
+print(high_corr)
