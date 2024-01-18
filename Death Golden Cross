@@ -1,0 +1,25 @@
+# Import libraries
+import yfinance as yf
+import matplotlib.pyplot as plt
+
+# Define the ticker and the time period
+ticker = 'AAPL' # Apple stock
+period = '2y' # 2 years of data
+
+# Fetch the stock data
+data = yf.download(tickers=ticker, period=period)
+
+# Calculate the moving averages
+data['MA50'] = data['Close'].rolling(window=50).mean()
+data['MA200'] = data['Close'].rolling(window=200).mean()
+
+# Plot the stock price and the moving averages
+plt.figure(figsize=(15,7))
+plt.plot(data['Close'], label='Price')
+plt.plot(data['MA50'], label='50-day MA')
+plt.plot(data['MA200'], label='200-day MA')
+plt.title(f'{ticker} Stock Price and Moving Averages')
+plt.xlabel('Date')
+plt.ylabel('Price in $')
+plt.legend()
+plt.show()
