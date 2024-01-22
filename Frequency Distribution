@@ -1,0 +1,36 @@
+import yfinance as yf
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# Define the stock ticker
+ticker = input("Enter stock ticker: ")
+
+# Download the historical data for the past 5 years
+aapl_data = yf.download(ticker, period="5y")
+
+# Calculate daily returns and statistics
+aapl_data["daily_returns"] = aapl_data["Adj Close"].pct_change()
+mean_return = aapl_data["daily_returns"].mean()
+std_dev = aapl_data["daily_returns"].std()
+min_return = aapl_data["daily_returns"].min()
+max_return = aapl_data["daily_returns"].max()
+
+# Plot the frequency distribution of the returns
+plt.hist(aapl_data["daily_returns"].dropna(), bins=20, color="blue", alpha=0.7)
+plt.axvline(mean_return, color="green", linestyle="--", label=f"Mean: {mean_return:.2%}")
+plt.axvline(mean_return + std_dev, color="orange", linestyle="--", label=f"Mean + SD: {mean_return + std_dev:.2%}")
+plt.axvline(mean_return - std_dev, color="orange", linestyle="--", label=f"Mean - SD: {mean_return - std_dev:.2%}")
+plt.xlabel("Daily Returns")
+plt.ylabel("Frequency")
+plt.title(f"Frequency Distribution of Daily Returns for {ticker}")
+plt.grid(True, which="both", linestyle="--", linewidth=0.5)
+plt.legend()
+
+# Print summary statistics
+print(f"\n**Daily Return Statistics for {ticker} ({aapl_data.index[0]} - {aapl_data.index[-1]}):**")
+print(f"- Mean:         {mean_return:.2%}")
+print(f"- Standard Dev: {std_dev:.2%}")
+print(f"- Minimum:     {min_return:.2%}")
+print(f"- Maximum:     {max_return:.2%}")
+
+plt.show()
