@@ -1,0 +1,42 @@
+import yfinance as yf
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+def get_stock_data(tickers):
+    start_date = pd.Timestamp.now() - pd.DateOffset(years=10)
+    end_date = pd.Timestamp.now()
+    prices = pd.DataFrame()
+    for ticker in tickers:
+        data = yf.download(ticker, start=start_date, end=end_date)
+        prices[ticker] = data['Adj Close']
+    return prices
+
+def plot_prices(prices):
+    plt.figure(figsize=(16, 8))
+    plt.title('Stock Prices')
+    plt.xlabel('Date')
+    plt.ylabel('Price')
+    sns.lineplot(data=prices)
+    plt.show()
+
+def plot_correlation(prices):
+    plt.figure(figsize=(16, 8))
+    plt.title('Stock Correlation')
+    plt.xlabel('Stock Ticker')
+    plt.ylabel('Stock Ticker')
+    sns.heatmap(prices.corr(), annot=True, cmap='coolwarm')
+    plt.show()
+
+tickers = []
+while True:
+    ticker = input('Enter a stock ticker (or "done" to finish): ')
+    if ticker.lower() == 'done':
+        break
+    tickers.append(ticker)
+
+
+
+prices = get_stock_data(tickers)
+plot_prices(prices)
+plot_correlation(prices)
