@@ -1,0 +1,143 @@
+import yfinance as yf
+import pandas as pd
+import numpy as np
+from statsmodels.regression.linear_model import OLS
+from statsmodels.tools import add_constant
+from pandas_datareader.famafrench import FamaFrenchReader
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+def fetch_sp500_data(start_date='1994-01-01'):
+    """Fetch S&P 500 historical data using yfinance."""
+    sp500 = yf.download('^GSPC', start=start_date)
+    sp500['Returns'] = sp500['Close'].pct_change()
+    return sp500
+
+def fetch_factors():
+    """Fetch Fama-French factors data."""
+    ff = FamaFrenchReader('F-F_Research_Data_Factors_daily')
+    factors = ff.read()[0]
+    factors = factors / 100  # Convert to decimal format
+    return factors
+
+def prepare_data(sp500_returns, factors):
+    """Prepare and align the data for regression."""
+    combined_data = pd.merge(
+        sp500_returns['Returns'],
+        factors,
+        left_index=True,
+        right_index=True,
+        how='inner'
+    )
+    combined_data = combined_data.dropna()
+    return combined_data
+
+def run_factor_regression(data):
+    """Perform factor regression analysis."""
+    y = data['Returns']
+    X = data[['Mkt-RF', 'SMB', 'HML']]
+    X = add_constant(X)
+    model = OLS(y, X).fit()
+    return model
+
+def analyze_results(model):
+    """Generate analysis results and summary statistics."""
+    results = {
+        'R-squared': model.rsquared,
+        'Adjusted R-squared': model.rsquared_adj,
+        'Alpha': model.params['const'],
+        'Market Beta': model.params['Mkt-RF'],
+        'SMB Beta': model.params['SMB'],
+        'HML Beta': model.params['HML'],
+        'Alpha p-value': model.pvalues['const'],
+        'Market Beta p-value': model.pvalues['Mkt-RF'],
+        'SMB Beta p-value': model.pvalues['SMB'],
+        'HML Beta p-value': model.pvalues['HML']
+    }
+    return results
+
+def plot_returns(sp500_returns):
+    """Plot S&P 500 returns."""
+    plt.figure(figsize=(12, 6))
+    plt.plot(sp500_returns['Returns'], label='S&P 500 Returns')
+    plt.title('S&P 500 Daily Returns')
+    plt.xlabel('Date')
+    plt.ylabel('Returns')
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+
+def plot_factors(factors):
+    """Plot Fama-French factors."""
+    plt.figure(figsize=(12, 6))
+    plt.plot(factors['Mkt-RF'], label='Market Risk Premium (Mkt-RF)')
+    plt.plot(factors['SMB'], label='Size Premium (SMB)')
+    plt.plot(factors['HML'], label='Value Premium (HML)')
+    plt.title('Fama-French Factors')
+    plt.xlabel('Date')
+    plt.ylabel('Factor Value')
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+
+def plot_regression_results(model, data):
+    """Plot actual vs. fitted returns and residuals."""
+    fitted_values = model.fittedvalues
+    residuals = model.resid
+
+    plt.figure(figsize=(12, 6))
+    plt.scatter(data.index, data['Returns'], label='Actual Returns', alpha=0.5)
+    plt.scatter(data.index, fitted_values, label='Fitted Values', alpha=0.5)
+    plt.title('Actual vs. Fitted S&P 500 Returns')
+    plt.xlabel('Date')
+    plt.ylabel('Returns')
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+
+    plt.figure(figsize=(12, 6))
+    plt.plot(data.index, residuals, label='Residuals')
+    plt.title('Residuals of the Regression')
+    plt.xlabel('Date')
+    plt.ylabel('Residuals')
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+
+
+def main():
+    # Fetch data
+    print("Fetching S&P 500 data...")
+    sp500_data = fetch_sp500_data()
+    plot_returns(sp500_data)  # Plot S&P 500 returns
+
+    print("Fetching factor data...")
+    factor_data = fetch_factors()
+    plot_factors(factor_data)  # Plot Fama-French factors
+
+    # Prepare data
+    print("Preparing data for analysis...")
+    combined_data = prepare_data(sp500_data, factor_data)
+
+    # Run regression
+    print("Running factor regression...")
+    model = run_factor_regression(combined_data)
+
+    # Analyze results
+    print("\nRegression Results:")
+    print("------------------")
+    results = analyze_results(model)
+
+    # Print results
+    for key, value in results.items():
+        print(f"{key}: {value:.4f}")
+
+    # Print full regression summary
+    print("\nDetailed Regression Summary:")
+    print(model.summary())
+
+    plot_regression_results(model, combined_data)  # Plot regression results
+
+
+if __name__ == "__main__":
+    main()
